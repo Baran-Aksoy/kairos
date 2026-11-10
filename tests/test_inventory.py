@@ -136,6 +136,9 @@ def test_invalid_payload_writes_nothing(api, make_client, session_factory):
     del missing_os["os"]
     empty_version = payload(packages=[{"name": "nginx", "version": ""}])
 
+    bad_hostname = payload(hostname="../vm-01")
+
+    assert api.post(URL, json=bad_hostname, headers=auth(token)).status_code == 422
     assert api.post(URL, json=missing_os, headers=auth(token)).status_code == 422
     assert api.post(URL, json=empty_version, headers=auth(token)).status_code == 422
     assert count(session_factory, Host) == 0

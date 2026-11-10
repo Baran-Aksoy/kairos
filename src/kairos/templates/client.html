@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}{{ client.name }} · Kairos{% endblock %}
+{% block nav %}/ {{ client.name }}{% endblock %}
+{% block content %}
+<h1>{{ client.name }}</h1>
+<p class="sub">{{ hosts | length }} hôte(s)</p>
+<div class="card scroll">
+  {% if hosts %}
+  <table>
+    <thead><tr><th>Hôte</th><th>OS</th><th>Noyau</th><th>Paquets</th><th>Dernière collecte</th></tr></thead>
+    <tbody>
+    {% for h in hosts %}
+      <tr>
+        <td><a href="{{ url_for('host_page', slug=client.slug, hostname=h.hostname) }}">{{ h.hostname }}</a></td>
+        <td>{{ h.os_distribution or '—' }} {{ h.os_version or '' }}</td>
+        <td class="mono">{{ h.kernel_running or '—' }}</td>
+        <td class="num">{{ h.packages }}</td>
+        <td>{{ h.last_seen.strftime('%Y-%m-%d %H:%M') }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty">Aucun hôte collecté pour ce client.</p>
+  {% endif %}
+</div>
+{% endblock %}

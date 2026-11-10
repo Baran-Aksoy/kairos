@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Clients</h1>
+<p class="sub">{{ clients | length }} client(s)</p>
+<div class="card scroll">
+  {% if clients %}
+  <table>
+    <thead><tr><th>Client</th><th>Hôtes</th><th>Dernière collecte</th></tr></thead>
+    <tbody>
+    {% for c in clients %}
+      <tr>
+        <td><a href="{{ url_for('client_page', slug=c.slug) }}">{{ c.name }}</a>
+            <span class="mono" style="color:var(--muted)">{{ c.slug }}</span></td>
+        <td class="num">{{ c.hosts }}</td>
+        <td>{{ c.last_seen.strftime('%Y-%m-%d %H:%M') if c.last_seen else '—' }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty">Aucun client. Créez‑en un avec <span class="mono">python -m kairos create-client</span>.</p>
+  {% endif %}
+</div>
+{% endblock %}

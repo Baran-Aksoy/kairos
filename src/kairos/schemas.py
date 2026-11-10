@@ -29,7 +29,8 @@ class InventoryIn(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    hostname: NonEmpty
+    # Inventory hostname as known by AWX; also used in page URLs, so no "/" or markup.
+    hostname: Annotated[str, Field(max_length=255, pattern=r"^[A-Za-z0-9][A-Za-z0-9._-]*$")]
     machine_id: str | None = Field(default=None, max_length=64)
     collected_at: datetime
     os: OsIn
