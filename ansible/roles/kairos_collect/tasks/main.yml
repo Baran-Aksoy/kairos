@@ -1,19 +1,51 @@
 ---
-# Skeleton only: the real collection (detectors, payload, sending to the API)
-# is delivered by story 001.
+# Read-only collection: OS facts and apt packages, sent to the Kairos API.
 - name: Gather minimal OS facts
   ansible.builtin.setup:
     gather_subset:
       - "!all"
       - "min"
-      - "distribution"
 
 - name: Gather installed packages
   ansible.builtin.package_facts:
     manager: auto
 
-- name: Show what was collected
-  ansible.builtin.debug:
-    msg: >-
-      {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }},
-      {{ ansible_facts['packages'] | length }} packages
+- name: Check that a collect token is provided
+  ansible.builtin.assert:
+    that: kairos_token | length > 0
+    fail_msg: "KAIROS_TOKEN is empty: attach the Kairos credential to the AWX job template."
+    quiet: true
+  no_log: true
+
+# Sent from the AWX execution node (delegate_to): VMs never need to reach Kairos.
+# no_log keeps the token out of AWX job output; the result is checked by the next task.
+- name: Send inventory to Kairos
+  ansible.builtin.uri:
+    url: "{{ kairos_url | regex_replace('/+$', '') }}/api/v1/inventory"
+    method: POST
+    headers:
+      Authorization: "Bearer {{ kairos_token }}"
+    body_format: json
+    body:
+      hostname: "{{ inventory_hostname }}"
+      machine_id: "{{ ansible_facts['machine_id'] | default('') }}"
+      collected_at: "{{ ansible_facts['date_time']['iso8601'] }}"
+      os:
+        distribution: "{{ ansible_facts['distribution'] }}"
+        version: "{{ ansible_facts['distribution_version'] }}"
+        kernel: "{{ ansible_facts['kernel'] }}"
+      packages: "{{ ansible_facts['packages'].values() | flatten }}"
+    status_code: [201]
+  delegate_to: localhost
+  register: kairos_send
+  failed_when: false
+  changed_when: false
+  no_log: true
+
+- name: Check that Kairos accepted the inventory
+  ansible.builtin.assert:
+    that: kairos_send.status == 201
+    success_msg: "Kairos: {{ kairos_send.json.packages | default('?') }} packages stored"
+    fail_msg: >-
+      Kairos refused the inventory (HTTP {{ kairos_send.status | default('n/a') }}):
+      {{ kairos_send.json.detail | default(kairos_send.msg | default('no detail')) }}

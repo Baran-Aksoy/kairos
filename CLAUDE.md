@@ -18,10 +18,11 @@ interface Kairos et par **Grafana** (lecture seule sur le schéma `reporting`).
 5. **Dépôt public** : aucun nom de client, nom d'hôte réel, IP, jeton ou secret.
    Les fixtures de test sont anonymisées (`client-a`, `vm-01`, `10.0.0.x`).
 6. **Pas de sur‑ingénierie** : on n'écrit que ce qu'une story demande (voir `team/REGLES.md`).
-7. **Jamais de push.** Ni Claude ni aucun agent n'exécute `git push`, ne crée ou ne fusionne
-   de pull request. Seul l'humain pousse vers GitHub. Les commits locaux sont autorisés
-   sur une branche de story, jamais sur `main`. Bloqué par `.claude/settings.json` et
-   par le hook `.claude/hooks/git-gate.sh`.
+7. **Ni commit, ni push, ni merge.** Ni Claude ni aucun agent n'exécute `git commit`,
+   `git push`, `git merge`, ne crée ou ne fusionne de pull request. Claude travaille sur une
+   branche `story/NNN-titre` créée depuis `main` et laisse les changements non commités ;
+   l'humain commite, fusionne et pousse. Bloqué par `.claude/hooks/git-gate.sh`.
+   Avant de passer à la story suivante : faire un topo à l'humain et attendre son accord.
 8. **Sans état (Kubernetes)** : l'API et le worker n'écrivent rien sur le disque local et ne
    gardent aucun état en mémoire ; tout est dans PostgreSQL. Configuration par variables
    d'environnement, migrations hors démarrage. Détail : `team/decisions/0004-kubernetes-sans-etat.md`.

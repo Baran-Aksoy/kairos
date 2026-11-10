@@ -15,6 +15,7 @@ from sqlalchemy import (
     BigInteger,
     DateTime,
     ForeignKey,
+    Integer,
     String,
     UniqueConstraint,
     func,
@@ -23,6 +24,8 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 JSONType = JSON().with_variant(JSONB(), "postgresql")
+# SQLite (tests) only auto-increments INTEGER primary keys.
+BigIntPK = BigInteger().with_variant(Integer(), "sqlite")
 
 
 class Base(DeclarativeBase):
@@ -34,12 +37,23 @@ class Client(Base):
 
     __tablename__ = "clients"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    id: Mapped[int] = mapped_column(BigIntPK, primary_key=True)
     slug: Mapped[str] = mapped_column(String(64), unique=True)
     name: Mapped[str] = mapped_column(String(200))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     hosts: Mapped[list["Host"]] = relationship(back_populates="client")
+
+
+class CollectToken(Base):
+    """Write-only token used by AWX to send a client's inventory. Only its SHA-256 is stored."""
+
+    __tablename__ = "collect_tokens"
+
+    id: Mapped[int] = mapped_column(BigIntPK, primary_key=True)
+    client_id: Mapped[int] = mapped_column(ForeignKey("clients.id", ondelete="CASCADE"), index=True)
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 class Host(Base):
@@ -48,7 +62,7 @@ class Host(Base):
     __tablename__ = "hosts"
     __table_args__ = (UniqueConstraint("client_id", "hostname"),)
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    id: Mapped[int] = mapped_column(BigIntPK, primary_key=True)
     client_id: Mapped[int] = mapped_column(ForeignKey("clients.id", ondelete="CASCADE"), index=True)
     hostname: Mapped[str] = mapped_column(String(255))
     machine_id: Mapped[str | None] = mapped_column(String(64))
@@ -64,7 +78,7 @@ class Snapshot(Base):
 
     __tablename__ = "snapshots"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    id: Mapped[int] = mapped_column(BigIntPK, primary_key=True)
     client_id: Mapped[int] = mapped_column(ForeignKey("clients.id", ondelete="CASCADE"), index=True)
     host_id: Mapped[int] = mapped_column(ForeignKey("hosts.id", ondelete="CASCADE"), index=True)
     collected_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
@@ -82,7 +96,7 @@ class Installation(Base):
 
     __tablename__ = "installations"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    id: Mapped[int] = mapped_column(BigIntPK, primary_key=True)
     client_id: Mapped[int] = mapped_column(ForeignKey("clients.id", ondelete="CASCADE"), index=True)
     snapshot_id: Mapped[int] = mapped_column(
         ForeignKey("snapshots.id", ondelete="CASCADE"), index=True
