@@ -60,6 +60,8 @@ def main(
     hosts = commands.add_parser("hosts", help="list a client's hosts and last collection date")
     hosts.add_argument("slug")
 
+    commands.add_parser("sync-eol", help="refresh OS end-of-life data from endoflife.date")
+
     args = parser.parse_args(argv)
 
     if session_factory is None:
@@ -72,4 +74,9 @@ def main(
     with session_factory() as session:
         if args.command == "create-client":
             return create_client(session, args.slug, args.name)
+        if args.command == "sync-eol":
+            from kairos.eol import sync_release_cycles
+
+            print(f"{sync_release_cycles(session)} release cycles synced.")
+            return 0
         return list_hosts(session, args.slug)

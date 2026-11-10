@@ -8,11 +8,15 @@
     :root {
       --bg: #f7f7f5; --surface: #ffffff; --text: #1c1c1a; --muted: #6b6b66;
       --border: #e2e2dd; --accent: #2b59c3; --row: #fafaf8;
+      --ok: #1f7a3d; --ok-bg: #e3f4e8; --warn: #8a5a00; --warn-bg: #fdf0d5;
+      --crit: #b42318; --crit-bg: #fde7e5;
     }
     @media (prefers-color-scheme: dark) {
       :root {
         --bg: #161615; --surface: #1f1f1d; --text: #ececea; --muted: #9a9a94;
         --border: #33332f; --accent: #7aa2ff; --row: #232321;
+        --ok: #6fd18f; --ok-bg: #16301f; --warn: #f2c066; --warn-bg: #33270f;
+        --crit: #ff8a80; --crit-bg: #3a1714;
       }
     }
     * { box-sizing: border-box; }
@@ -49,6 +53,12 @@
     button { padding: 8px 14px; font: inherit; border: 1px solid var(--border);
              border-radius: 6px; background: var(--surface); color: var(--text); cursor: pointer; }
     .empty { padding: 24px; color: var(--muted); }
+    .badge { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px;
+             font-weight: 600; border: 1px solid transparent; }
+    .badge.ok { color: var(--ok); background: var(--ok-bg); }
+    .badge.warning { color: var(--warn); background: var(--warn-bg); }
+    .badge.critical { color: var(--crit); background: var(--crit-bg); }
+    .badge.unknown { color: var(--muted); border-color: var(--border); }
   </style>
 </head>
 <body>

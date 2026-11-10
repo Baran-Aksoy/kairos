@@ -12,5 +12,10 @@ déduite d'une table parente. Toute requête applicative filtre par client.
 - Le filtrage direct est simple à relire et permet d'ajouter plus tard la sécurité au niveau
   des lignes de PostgreSQL (row-level security).
 
+## Exception (2026-11-10, story 003)
+Les **référentiels publics** (ex. `release_cycles`, issus d'endoflife.date) sont partagés par
+tous les clients et ne portent pas de `client_id`. Ils ne doivent contenir aucune donnée client.
+Ils sont listés explicitement dans `tests/test_models.py`.
+
 ## Contrôle
 `tests/test_models.py` échoue si une table n'a pas de `client_id`.

@@ -8,7 +8,7 @@ Catalog (products, release cycles), vulnerabilities and findings will be added b
 stories that need them.
 """
 
-from datetime import datetime
+from datetime import date, datetime
 
 from sqlalchemy import (
     JSON,
@@ -54,6 +54,29 @@ class CollectToken(Base):
     client_id: Mapped[int] = mapped_column(ForeignKey("clients.id", ondelete="CASCADE"), index=True)
     token_hash: Mapped[str] = mapped_column(String(64), unique=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class ReleaseCycle(Base):
+    """Public reference data from endoflife.date: one release cycle of a product.
+
+    Shared by all clients, hence no client_id (ADR 0003, exception).
+    """
+
+    __tablename__ = "release_cycles"
+    __table_args__ = (UniqueConstraint("product", "cycle"),)
+
+    id: Mapped[int] = mapped_column(BigIntPK, primary_key=True)
+    product: Mapped[str] = mapped_column(String(64))
+    cycle: Mapped[str] = mapped_column(String(64))
+    codename: Mapped[str | None] = mapped_column(String(128))
+    lts: Mapped[bool] = mapped_column(default=False)
+    release_date: Mapped[date | None]
+    # End of standard security support.
+    eol: Mapped[date | None]
+    # End of paid extended support (Ubuntu Pro / ESM), if any.
+    extended_support: Mapped[date | None]
+    latest: Mapped[str | None] = mapped_column(String(64))
+    fetched_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
 
 class Host(Base):
