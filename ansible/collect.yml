@@ -1,0 +1,8 @@
+---
+# Kairos inventory collection. Launched by an AWX job template on each client inventory.
+# STRICTLY READ-ONLY: checked by scripts/check_ansible_readonly.py.
+- name: Collect inventory for Kairos
+  hosts: all
+  gather_facts: false
+  roles:
+    - kairos_collect

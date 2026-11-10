@@ -1,0 +1,59 @@
+name: kairos
+
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: kairos
+      POSTGRES_USER: kairos
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?définir POSTGRES_PASSWORD dans .env}
+      GRAFANA_DB_PASSWORD: ${GRAFANA_DB_PASSWORD:?définir GRAFANA_DB_PASSWORD dans .env}
+    volumes:
+      # PostgreSQL 18 images store data under /var/lib/postgresql/<major>/docker
+      - pgdata:/var/lib/postgresql
+      - ./deploy/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kairos -d kairos"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # One-shot job, the equivalent of a Kubernetes Job before rolling out the API.
+  migrate:
+    build: .
+    command: ["alembic", "upgrade", "head"]
+    environment:
+      KAIROS_DATABASE_URL: postgresql+psycopg://kairos:${POSTGRES_PASSWORD}@postgres:5432/kairos
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    build: .
+    environment:
+      KAIROS_DATABASE_URL: postgresql+psycopg://kairos:${POSTGRES_PASSWORD}@postgres:5432/kairos
+    read_only: true  # same constraint as readOnlyRootFilesystem in Kubernetes
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  grafana:
+    profiles: ["grafana"]
+    image: grafana/grafana:12.0.0  # à mettre à jour vers la dernière 12.x
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?définir GRAFANA_ADMIN_PASSWORD dans .env}
+      GRAFANA_DB_PASSWORD: ${GRAFANA_DB_PASSWORD}
+    volumes:
+      - ./deploy/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana:/var/lib/grafana
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  grafana:

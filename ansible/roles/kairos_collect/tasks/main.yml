@@ -1,0 +1,19 @@
+---
+# Skeleton only: the real collection (detectors, payload, sending to the API)
+# is delivered by story 001.
+- name: Gather minimal OS facts
+  ansible.builtin.setup:
+    gather_subset:
+      - "!all"
+      - "min"
+      - "distribution"
+
+- name: Gather installed packages
+  ansible.builtin.package_facts:
+    manager: auto
+
+- name: Show what was collected
+  ansible.builtin.debug:
+    msg: >-
+      {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }},
+      {{ ansible_facts['packages'] | length }} packages

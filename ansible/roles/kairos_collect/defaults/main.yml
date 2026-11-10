@@ -1,0 +1,5 @@
+---
+# Kairos API endpoint and per-client token.
+# In AWX, inject both through a custom credential type (never commit a real token).
+kairos_url: "{{ lookup('ansible.builtin.env', 'KAIROS_URL') | default('http://127.0.0.1:8000', true) }}"
+kairos_token: "{{ lookup('ansible.builtin.env', 'KAIROS_TOKEN') }}"
