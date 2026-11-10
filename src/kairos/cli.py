@@ -47,6 +47,19 @@ def list_hosts(session: Session, slug: str) -> int:
     return 0
 
 
+def print_sbom(session: Session, slug: str, hostname: str) -> int:
+    import json
+
+    from kairos.sbom import sbom_for_host
+
+    document = sbom_for_host(session, slug, hostname)
+    if document is None:
+        print(f"No collected host '{hostname}' for client '{slug}'.", file=sys.stderr)
+        return 1
+    print(json.dumps(document, indent=2))
+    return 0
+
+
 def main(
     argv: list[str] | None = None, session_factory: Callable[[], Session] | None = None
 ) -> int:
@@ -61,6 +74,10 @@ def main(
     hosts.add_argument("slug")
 
     commands.add_parser("sync-eol", help="refresh OS end-of-life data from endoflife.date")
+
+    sbom = commands.add_parser("sbom", help="print the CycloneDX SBOM of a host (stdout)")
+    sbom.add_argument("slug")
+    sbom.add_argument("hostname")
 
     args = parser.parse_args(argv)
 
@@ -79,4 +96,6 @@ def main(
 
             print(f"{sync_release_cycles(session)} release cycles synced.")
             return 0
+        if args.command == "sbom":
+            return print_sbom(session, args.slug, args.hostname)
         return list_hosts(session, args.slug)
