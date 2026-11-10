@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}{{ host.hostname }} · Kairos{% endblock %}
+{% block nav %}/ <a href="{{ url_for('client_page', slug=client.slug) }}">{{ client.name }}</a> / {{ host.hostname }}{% endblock %}
+{% block content %}
+<h1>{{ host.hostname }}</h1>
+<p class="sub">Dernière collecte le {{ snapshot.collected_at.strftime('%Y-%m-%d %H:%M') }}</p>
+<dl class="card facts">
+  <div><dt>OS</dt><dd>{{ snapshot.os_distribution or '—' }} {{ snapshot.os_version or '' }}</dd></div>
+  <div><dt>Noyau</dt><dd class="mono">{{ snapshot.kernel_running or '—' }}</dd></div>
+  <div><dt>Paquets</dt><dd>{{ total }}</dd></div>
+  <div><dt>Machine ID</dt><dd class="mono">{{ host.machine_id or '—' }}</dd></div>
+</dl>
+<form method="get">
+  <input type="search" name="q" value="{{ q }}" placeholder="Filtrer les paquets par nom" aria-label="Filtrer les paquets">
+  <button type="submit">Filtrer</button>
+</form>
+<div class="card scroll">
+  {% if packages %}
+  <table>
+    <thead><tr><th>Paquet</th><th>Version</th><th>Source</th></tr></thead>
+    <tbody>
+    {% for p in packages %}
+      <tr><td>{{ p.name }}</td><td class="mono">{{ p.version }}</td><td>{{ p.source }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty">Aucun paquet{% if q %} ne correspond à « {{ q }} »{% endif %}.</p>
+  {% endif %}
+</div>
+{% endblock %}
