@@ -17,16 +17,9 @@ if git_sub push || printf '%s' "$cmd" | grep -Eq 'gh[[:space:]]+pr[[:space:]]+(c
   exit 2
 fi
 
-if git_sub commit; then
-  branch="$(git -C "$ROOT" symbolic-ref --short HEAD 2>/dev/null || true)"
-  if [ "$branch" = "main" ]; then
-    echo "Refusé : pas de commit sur main. Créer une branche story/NNN-titre." >&2
-    exit 2
-  fi
-  if ! out="$("$ROOT/scripts/dod.sh" 2>&1)"; then
-    { echo "Commit refusé : la définition de « terminé » n'est pas remplie."; echo "$out"; } >&2
-    exit 2
-  fi
+if git_sub commit || git_sub merge || git_sub rebase; then
+  echo "Refusé : seul l'humain commite et fusionne (CLAUDE.md, règle 7). Laisser les changements non commités." >&2
+  exit 2
 fi
 
 exit 0

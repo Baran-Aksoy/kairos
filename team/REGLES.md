@@ -22,7 +22,8 @@ ce qui ne respecte pas la qualité ou la sécurité. **Seul l'humain livre.**
 5. Le **relecteur** relit le diff. S'il bloque : correction, puis **une seule** relecture de plus ;
    au‑delà, l'humain arbitre.
 6. Le **PO** fait la recette des critères d'acceptation.
-7. 🔒 **L'humain fusionne et pousse.** Le dev passe la story à `terminé` et écrit le journal.
+7. 🔒 **L'humain commite, fusionne et pousse.** Le dev passe la story à `terminé`, écrit le
+   journal et fait un topo ; il attend l'accord de l'humain avant la story suivante.
 
 ## Définition de « prêt »
 Vérifiée par `scripts/check_story.py` (hook automatique) :
@@ -45,8 +46,9 @@ et par le relecteur :
 - Les contrôles mécaniques sont des scripts, pas des agents.
 
 ## Garde‑fous techniques
-- `git push`, `gh pr create/merge` : interdits (`.claude/settings.json` + `.claude/hooks/git-gate.sh`).
-- Pas de commit sur `main`, pas de commit si `scripts/dod.sh` échoue.
+- `git commit`, `merge`, `rebase`, `push`, `gh pr create/merge` : interdits à Claude
+  (`.claude/settings.json` + `.claude/hooks/git-gate.sh`). Claude lance `scripts/dod.sh`
+  avant de rendre la main ; l'humain commite.
 - Le PO ne peut écrire que dans `team/` (`.claude/hooks/po-scope.sh`).
 
 ## Espace commun
