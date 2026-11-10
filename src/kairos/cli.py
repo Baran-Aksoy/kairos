@@ -47,6 +47,19 @@ def list_hosts(session: Session, slug: str) -> int:
     return 0
 
 
+def print_sbom(session: Session, slug: str, hostname: str) -> int:
+    import json
+
+    from kairos.sbom import sbom_for_host
+
+    document = sbom_for_host(session, slug, hostname)
+    if document is None:
+        print(f"No collected host '{hostname}' for client '{slug}'.", file=sys.stderr)
+        return 1
+    print(json.dumps(document, indent=2))
+    return 0
+
+
 def main(
     argv: list[str] | None = None, session_factory: Callable[[], Session] | None = None
 ) -> int:
@@ -60,6 +73,10 @@ def main(
     hosts = commands.add_parser("hosts", help="list a client's hosts and last collection date")
     hosts.add_argument("slug")
 
+    sbom = commands.add_parser("sbom", help="print the CycloneDX SBOM of a host (stdout)")
+    sbom.add_argument("slug")
+    sbom.add_argument("hostname")
+
     args = parser.parse_args(argv)
 
     if session_factory is None:
@@ -72,4 +89,6 @@ def main(
     with session_factory() as session:
         if args.command == "create-client":
             return create_client(session, args.slug, args.name)
+        if args.command == "sbom":
+            return print_sbom(session, args.slug, args.hostname)
         return list_hosts(session, args.slug)
