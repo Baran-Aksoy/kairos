@@ -10,6 +10,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from kairos.db import get_session
+from kairos.eol import cycle_key, os_status, release_cycles_by_key, today_utc
 from kairos.models import Client, Host, Installation, Snapshot
 
 templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
@@ -68,7 +69,14 @@ def client_page(request: Request, slug: str, session: SessionDep):
         .where(Host.client_id == client.id)
         .order_by(Host.hostname)
     ).all()
-    return templates.TemplateResponse(request, "client.html", {"client": client, "hosts": hosts})
+    cycles, today = release_cycles_by_key(session), today_utc()
+    statuses = {
+        h.hostname: os_status(cycles.get(cycle_key(h.os_distribution, h.os_version)), today)
+        for h in hosts
+    }
+    return templates.TemplateResponse(
+        request, "client.html", {"client": client, "hosts": hosts, "statuses": statuses}
+    )
 
 
 @router.get("/clients/{slug}/hosts/{hostname}")
@@ -102,5 +110,11 @@ def host_page(request: Request, slug: str, hostname: str, session: SessionDep, q
             "packages": session.scalars(packages.order_by(Installation.name)).all(),
             "total": total,
             "q": q,
+            "os_status": os_status(
+                release_cycles_by_key(session).get(
+                    cycle_key(snapshot.os_distribution, snapshot.os_version)
+                ),
+                today_utc(),
+            ),
         },
     )

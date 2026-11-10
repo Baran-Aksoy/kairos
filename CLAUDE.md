@@ -10,7 +10,8 @@ interface Kairos et par **Grafana** (lecture seule sur le schéma `reporting`).
 1. **Kairos n'agit jamais sur les VM.** Le rôle Ansible est en lecture seule :
    uniquement des modules de collecte, `changed_when: false` sur toute commande.
    Vérifié par `scripts/check_ansible_readonly.py`.
-2. **Cloisonnement par client** : chaque table (sauf `clients`) porte `client_id`,
+2. **Cloisonnement par client** : chaque table (sauf `clients` et les référentiels publics
+   listés dans `tests/test_models.py`) porte `client_id`,
    chaque requête filtre par client. Vérifié par `tests/test_models.py`.
 3. **Versions** : toujours comparées avec `python-debian` / `univers`, jamais comme chaînes.
 4. **CVE** : pour un paquet de distribution, la source de vérité est la base de la

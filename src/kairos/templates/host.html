@@ -6,6 +6,8 @@
 <p class="sub">Dernière collecte le {{ snapshot.collected_at.strftime('%Y-%m-%d %H:%M') }}</p>
 <dl class="card facts">
   <div><dt>OS</dt><dd>{{ snapshot.os_distribution or '—' }} {{ snapshot.os_version or '' }}</dd></div>
+  <div><dt>Support OS</dt><dd><span class="badge {{ os_status.level }}">{{ os_status.label }}</span>
+    {% if os_status.until %}jusqu'au {{ os_status.until.strftime('%d/%m/%Y') }}{% endif %}</dd></div>
   <div><dt>Noyau</dt><dd class="mono">{{ snapshot.kernel_running or '—' }}</dd></div>
   <div><dt>Paquets</dt><dd>{{ total }}</dd></div>
   <div><dt>Machine ID</dt><dd class="mono">{{ host.machine_id or '—' }}</dd></div>
